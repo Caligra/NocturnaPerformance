@@ -1,5 +1,6 @@
 package com.nocturna.performance.job;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nocturna.performance.service.CatalogService;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -20,12 +23,22 @@ public class CatalogJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
-        catalogService.getBrandCatalog("catalogjob");
         JobDataMap dataMap = jobExecutionContext.getJobDetail().getJobDataMap();
         Map <String, Object> toPrint = dataMap.getWrappedMap();
         System.out.println(toPrint.toString());
         String param = dataMap.getString("param");
         System.out.println(MessageFormat.format("Job: {0}; param: {1}; Thread: {2}",
                 getClass(), param, Thread.currentThread().getName()));
+
+        // send JobDataMap as parameter
+        log.info("before entering service");
+        try {
+            catalogService.getBrandCatalog("catalogjob");
+        }   catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        log.info("After leaving service");
     }
 }

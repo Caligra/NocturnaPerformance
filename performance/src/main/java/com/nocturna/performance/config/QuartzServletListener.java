@@ -5,11 +5,17 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.quartz.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 @WebListener
 public class QuartzServletListener implements ServletContextListener {
+    private static final Logger log = LoggerFactory.getLogger(QuartzServletListener.class);
+
     private Scheduler scheduler;
 
     @Override
@@ -18,20 +24,25 @@ public class QuartzServletListener implements ServletContextListener {
         ApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
         // Inject the Scheduler bean manually
         scheduler = context.getBean(Scheduler.class);
+
         try {
-            // Define a Quartz job and its trigger
+            // Defining catalog downloading job
             JobDetail jobDetail = JobBuilder.newJob(CatalogJob.class)
-                    .withIdentity("myJob", "group1")
-                    .usingJobData("brandLoading", "value")
+                    .usingJobData("param", "value") //pass report name
                     .build();
+            // Execute catalog download job
             Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity("myJobTrigger", "group1")
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInSeconds(2)
-                            .repeatForever())
+                            //.withIntervalInHours(8)
+                            .withIntervalInMinutes(5)
+                            //.withIntervalInSeconds(2)
+                            .repeatForever()
+                            .withRepeatCount(1))
                     .build();
             // Schedule the job
+            log.info("Before scheduling job");
             scheduler.scheduleJob(jobDetail, trigger);
+            log.info("After scheduling job");
             // Start the scheduler
             scheduler.start();
         } catch (Exception e) {

@@ -3,13 +3,18 @@ package com.nocturna.performance.config;
 import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 public class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory implements ApplicationContextAware {
     private ApplicationContext context;
-
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.context = applicationContext;
