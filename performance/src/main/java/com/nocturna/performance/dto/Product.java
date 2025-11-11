@@ -14,23 +14,34 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Product {
 
-    @Id
-    @GeneratedValue
-    private Long id;
     @Column
     private String category;
-    @Column(nullable = false)
+    @Column
     private String brand;
-    @Column(nullable = false)
+    @Column
+    private String brandName;
+    @Column
     private String name;
+    @Id
+    private String upc;
+    @Column
+    private String shortDescription;
+    @Column
+    private String longDescription;
+    @Column
+    private String subcategory;
 
     @Override
     public String toString() {
         return "Product{" +
                 "category='" + category + '\'' +
                 ", brand='" + brand + '\'' +
+                ", brandName='" + brandName + '\'' +
                 ", name='" + name + '\'' +
+                ", upc='" + upc + '\'' +
+                ", shortDescription='" + shortDescription + '\'' +
+                ", longDescription='" + longDescription + '\'' +
+                ", subcategory='" + subcategory + '\'' +
                 '}';
     }
-
 }

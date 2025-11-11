@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,11 +20,13 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+
 import java.io.IOException;
 
 @Service
@@ -38,6 +41,10 @@ public class CatalogService {
 
     private final RestClient restClient;
 
+    public void updateOrInsertProductRepo(Product product){
+        productEngRepository.updateOrInsert(product);
+    }
+
     public CatalogService(RestClient.Builder restClientBuilder) {
         this.restClient = restClientBuilder.baseUrl(test_url).build();
     }
@@ -46,11 +53,8 @@ public class CatalogService {
         /*
          * Method to fetch catalog
          * */
-        logger.info("milestone 1");
         //String consume = someRestCall("8401", "BDDP");
         someRestCall("21941", "8401", "BDDP");
-        logger.info("milestone 2");
-        //logger.info("CatalogService :: " + consume);
         return input + " yayy";
     }
 
@@ -67,14 +71,22 @@ public class CatalogService {
                 }, template, part, brandCode);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        Products responseList = objectMapper.readValue(response.getBody(),Products.class);
+        Products responseList = objectMapper.readValue(response.getBody(), Products.class);
         logger.info("Consuming Consume Consumer:: " + responseList.getProducts().size());
-        if(responseList.getProducts().size()>0){
-            logger.info("Consuming Consume Consumer2:: " + responseList.getProducts().get(0).toString());
+
+        try {
+            if (!responseList.getProducts().isEmpty()) {
+                for (Product prod : responseList.getProducts()) {
+                    logger.info("Product to be inserted:: " + prod.toString());
+                }
+                productEngRepository.saveAll(responseList.getProducts());
+            }
+        } catch (DataIntegrityViolationException ex) {
+            logger.info("Product with exception:: ");
+            ex.printStackTrace();
         }
-        for (Product prod : responseList.getProducts()){
-            productEngRepository.save(prod);
-        }
+
+
         //translateText();
 
         //return printResponse;
@@ -86,6 +98,7 @@ public class CatalogService {
         String text = "Spark plug";
         translateText(projectId, targetLanguage, text);
     }
+
     public static void translateText(String projectId, String targetLanguage, String text)
             throws IOException {
 
