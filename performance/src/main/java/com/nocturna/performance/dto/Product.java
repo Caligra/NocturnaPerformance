@@ -1,5 +1,6 @@
 package com.nocturna.performance.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Product {
 
     @Column
@@ -19,29 +21,32 @@ public class Product {
     @Column
     private String brand;
     @Column
-    private String brandName;
+    private String brand_name;
     @Column
     private String name;
     @Id
     private String upc;
     @Column
-    private String shortDescription;
+    private String short_description;
     @Column
-    private String longDescription;
+    private String long_description;
     @Column
-    private String subcategory;
+    private String sub_category;
+    @Column
+    private String marketing_description;
 
     @Override
     public String toString() {
         return "Product{" +
                 "category='" + category + '\'' +
                 ", brand='" + brand + '\'' +
-                ", brandName='" + brandName + '\'' +
+                ", brandName='" + brand_name + '\'' +
                 ", name='" + name + '\'' +
                 ", upc='" + upc + '\'' +
-                ", shortDescription='" + shortDescription + '\'' +
-                ", longDescription='" + longDescription + '\'' +
-                ", subcategory='" + subcategory + '\'' +
+                ", shortDescription='" + short_description + '\'' +
+                ", longDescription='" + long_description + '\'' +
+                ", subcategory='" + sub_category + '\'' +
+                ", marketing_description='" + marketing_description + '\'' +
                 '}';
     }
 }

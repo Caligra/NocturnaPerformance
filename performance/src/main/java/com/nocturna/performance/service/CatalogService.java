@@ -1,9 +1,9 @@
 package com.nocturna.performance.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nocturna.performance.dto.Product;
+import com.google.cloud.translate.v3.*;
 import com.nocturna.performance.dto.Products;
 import com.nocturna.performance.dto.repository.ProductEngRepository;
 import org.slf4j.Logger;
@@ -16,80 +16,49 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-
-import com.google.cloud.translate.v3.LocationName;
-import com.google.cloud.translate.v3.TranslateTextRequest;
-import com.google.cloud.translate.v3.TranslateTextResponse;
-import com.google.cloud.translate.v3.Translation;
-import com.google.cloud.translate.v3.TranslationServiceClient;
 
 import java.io.IOException;
 
 @Service
 public class CatalogService {
     private static final Logger logger = LoggerFactory.getLogger(CatalogService.class);
-    private static final String test_url = "https://api.pdm-automotive.com/api/v1";
+    private static final String catalogByBrandURL = "https://api.pdm-automotive.com/api/v1/products/export_builder_plus?template_id={template}&brand_code={brandCode}";
     @Autowired
     private RestTemplate restTemplate;
-
     @Autowired
     private ProductEngRepository productEngRepository;
 
-    private final RestClient restClient;
-
-    public void updateOrInsertProductRepo(Product product){
-        productEngRepository.updateOrInsert(product);
-    }
-
-    public CatalogService(RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.baseUrl(test_url).build();
-    }
-
-    public String getBrandCatalog(String input) throws IOException {
+    public void getBrandCatalog(String input) throws IOException {
         /*
          * Method to fetch catalog
          * */
-        //String consume = someRestCall("8401", "BDDP");
-        someRestCall("21941", "8401", "BDDP");
-        return input + " yayy";
+        fetchCatalogDataByBrand("21941","BDDP");
     }
 
-    public void someRestCall(String template, String part, String brandCode) throws IOException {
+    public void fetchCatalogDataByBrand(String template, String brandCode) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("API-Token", "ANk55DO8mEptpNanZAWHGebZEfikECTW0QW33W7JSGCzqKvDPxGfy9u1qmgH98nC");
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "https://api.pdm-automotive.com/api/v1/products/export_builder_plus?template_id={template}&part_number={part}&limit=1&brand_code={brandCode}",
+        ResponseEntity<String> response = restTemplate.exchange(catalogByBrandURL,
                 HttpMethod.GET, requestEntity, new ParameterizedTypeReference<>() {
-                }, template, part, brandCode);
+                }, template, brandCode);
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        //objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         Products responseList = objectMapper.readValue(response.getBody(), Products.class);
         logger.info("Consuming Consume Consumer:: " + responseList.getProducts().size());
 
         try {
             if (!responseList.getProducts().isEmpty()) {
-                for (Product prod : responseList.getProducts()) {
-                    logger.info("Product to be inserted:: " + prod.toString());
-                }
                 productEngRepository.saveAll(responseList.getProducts());
             }
         } catch (DataIntegrityViolationException ex) {
-            logger.info("Product with exception:: ");
             ex.printStackTrace();
         }
-
-
         //translateText();
-
-        //return printResponse;
     }
 
     public static void translateText() throws IOException {

@@ -23,22 +23,16 @@ public class CatalogJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
-        JobDataMap dataMap = jobExecutionContext.getJobDetail().getJobDataMap();
+        /*JobDataMap dataMap = jobExecutionContext.getJobDetail().getJobDataMap();
         Map <String, Object> toPrint = dataMap.getWrappedMap();
         System.out.println(toPrint.toString());
         String param = dataMap.getString("param");
         System.out.println(MessageFormat.format("Job: {0}; param: {1}; Thread: {2}",
-                getClass(), param, Thread.currentThread().getName()));
-
-        // send JobDataMap as parameter
-        log.info("before entering service");
+                getClass(), param, Thread.currentThread().getName()));*/
         try {
             catalogService.getBrandCatalog("catalogjob");
-        }   catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        log.info("After leaving service");
     }
 }
