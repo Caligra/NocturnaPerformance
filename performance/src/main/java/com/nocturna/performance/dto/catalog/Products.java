@@ -1,4 +1,6 @@
-package com.nocturna.performance.dto;
+package com.nocturna.performance.dto.catalog;
+
+import com.nocturna.performance.dto.catalog.Product;
 
 import java.util.List;
 
