@@ -2,6 +2,7 @@ package com.nocturna.performance.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.translate.v3.*;
+import com.nocturna.performance.config.SchedulerProperties;
 import com.nocturna.performance.dto.exportproduct.ExportProduct;
 import com.nocturna.performance.dto.catalog.Product;
 import com.nocturna.performance.dto.catalog.Products;
@@ -38,12 +39,19 @@ public class CatalogService {
     @Autowired
     private ExportProductRepository exportProductID;
 
+    @Autowired
+    private SchedulerProperties schedulerProperties;
+
     public void getBrandCatalog(String input) throws IOException {
         /*
          * Method to fetch catalog
          * */
         //fetchCatalogDataByBrand("21941", "BDDP");
-        translateProductItemDescriptions("BDDP");
+        //translateProductItemDescriptions("BDDP");
+    }
+
+    public void testing(String code){
+        logger.info("testing printer:: " + code);
     }
 
     public void fetchCatalogDataByBrand(String template, String brandCode) throws IOException {
@@ -74,6 +82,9 @@ public class CatalogService {
         String projectId = "nocturnatesttranslate";
         List<Product> productsByBrand = productEngRepository.findByBrand(brand);
         logger.info("productsByBrand.size():: " + productsByBrand.size());
+        logger.info("Scheduler values " + schedulerProperties.getCatalog());
+        logger.info("Scheduler values " + schedulerProperties.getTranslate());
+        logger.info("Scheduler values " + schedulerProperties.getExport());
         List<ExportProduct> allTranslatedProducts = new ArrayList<>();
 
 
