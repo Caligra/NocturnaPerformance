@@ -10,6 +10,7 @@ public class SchedulerProperties {
     private String translate;
     private String export;
     private String brandcodes;
+    private String template;
 
     public String getCatalog() {
         return catalog;
@@ -41,5 +42,13 @@ public class SchedulerProperties {
 
     public void setBrandcodes(String brandcodes) {
         this.brandcodes = brandcodes;
+    }
+
+    public String getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(String template) {
+        this.template = template;
     }
 }

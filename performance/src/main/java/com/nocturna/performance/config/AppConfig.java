@@ -9,11 +9,9 @@ import org.springframework.web.client.RestTemplate;
 @EnableConfigurationProperties
 public class AppConfig {
 
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
 
 }

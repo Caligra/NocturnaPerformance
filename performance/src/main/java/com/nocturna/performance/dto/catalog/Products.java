@@ -4,13 +4,13 @@ import com.nocturna.performance.dto.catalog.Product;
 
 import java.util.List;
 
-public class Products {
+public class HolleyProducts {
     List<Product> products;
 
-    public Products() {
+    public HolleyProducts() {
     }
 
-    public Products(List<Product> products) {
+    public HolleyProducts(List<Product> products) {
         this.products = products;
     }
 
