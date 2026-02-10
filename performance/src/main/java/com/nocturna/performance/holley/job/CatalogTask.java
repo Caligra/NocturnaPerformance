@@ -1,7 +1,7 @@
-package com.nocturna.performance.job;
+package com.nocturna.performance.holley.job;
 
 import com.nocturna.performance.config.SchedulerProperties;
-import com.nocturna.performance.service.CatalogService;
+import com.nocturna.performance.holley.service.CatalogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +19,20 @@ public class CatalogTask {
     @Autowired
     private SchedulerProperties schedulerProperties;
     //@Scheduled(cron = "${cron.schedule.catalog}")
-    @Scheduled(fixedRate = 3000000)
+    @Scheduled(fixedRate = 3000000) //50 mins set to test
     public void runTask(){
-        log.info("Starting Catalog Job");
-        String[] brandCodes = schedulerProperties.getBrandcodes().split("\\+");
-        for(String code : brandCodes){
-            try {
-                catalogService.getBrandCatalog(code);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        boolean debug = false;
+        if(debug) {
+            log.info("Starting Catalog Job");
+            String[] brandCodes = schedulerProperties.getBrandcodes().split("\\+");
+            for (String code : brandCodes) {
+                try {
+                    catalogService.getBrandCatalog(code);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
+            log.info("Ending Catalog Job");
         }
-        log.info("Ending Catalog Job");
     }
 }

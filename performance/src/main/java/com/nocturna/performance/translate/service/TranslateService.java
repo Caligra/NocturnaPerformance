@@ -1,4 +1,4 @@
-package com.nocturna.performance.service;
+package com.nocturna.performance.translate.service;
 
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextResponse;
@@ -6,10 +6,10 @@ import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.nocturna.performance.config.NocturnaProperties;
 import com.nocturna.performance.config.SchedulerProperties;
-import com.nocturna.performance.dto.catalog.Product;
-import com.nocturna.performance.dto.catalog.repository.ProductEngRepository;
-import com.nocturna.performance.dto.exportproduct.ExportProduct;
-import com.nocturna.performance.dto.exportproduct.repository.ExportProductRepository;
+import com.nocturna.performance.holley.dto.HolleyProduct;
+import com.nocturna.performance.holley.dto.repository.HolleyRepository;
+import com.nocturna.performance.export.dto.ExportProduct;
+import com.nocturna.performance.export.dto.repository.ExportProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class TranslateService {
     @Autowired
     private NocturnaProperties nocturnaProperties;
     @Autowired
-    private ProductEngRepository productEngRepository;
+    private HolleyRepository productEngRepository;
     @Autowired
     private ExportProductRepository exportProductRepository;
 
@@ -55,13 +55,14 @@ public class TranslateService {
      * Translate descriptions and generate new ExportProduct to store and export later
      */
     public void translateProductItemDescriptions(String brand) throws IOException {
-        //Fetch products by brand code
-        List<Product> productsByBrand = productEngRepository.findByBrand(brand);
-        logger.info("translateProductItemDescriptions:: " + brand + " size():: " + productsByBrand.size());
+        //Final list to insert in DB
         List<ExportProduct> allTranslatedProducts = new ArrayList<>();
+        //Fetch products by brand code
+        List<HolleyProduct> productsByBrand = productEngRepository.findByBrand(brand);
+        logger.info("translateProductItemDescriptions:: " + brand + " size():: " + productsByBrand.size());
 
         //Loop products
-        for (Product product : productsByBrand) {
+        for (HolleyProduct product : productsByBrand) {
             // Generating Map for translation
             List<String> engDesc = new ArrayList<>();
             engDesc.add((product.getShort_description() == null || product.getShort_description().isEmpty()) ? "" : product.getShort_description());

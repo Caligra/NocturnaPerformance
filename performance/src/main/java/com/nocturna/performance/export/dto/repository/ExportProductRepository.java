@@ -1,6 +1,6 @@
-package com.nocturna.performance.dto.exportproduct.repository;
+package com.nocturna.performance.export.dto.repository;
 
-import com.nocturna.performance.dto.exportproduct.ExportProduct;
+import com.nocturna.performance.export.dto.ExportProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

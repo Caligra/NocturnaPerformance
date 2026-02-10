@@ -1,15 +1,16 @@
-package com.nocturna.performance.dto.catalog.repository;
+package com.nocturna.performance.holley.dto.repository;
 
-import com.nocturna.performance.dto.catalog.Product;
+import com.nocturna.performance.holley.dto.HolleyProduct;
+import com.nocturna.performance.holley.dto.HolleyProducts;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ProductEngRepository extends JpaRepository<Product, String> {
+public interface HolleyRepository extends JpaRepository<HolleyProduct, String> {
 
-    List<Product> findByBrand(String brandCode);
+    List<HolleyProduct> findByBrand(String brandCode);
 
     /**
      * To create custom queries

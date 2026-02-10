@@ -1,8 +1,7 @@
-package com.nocturna.performance.job;
+package com.nocturna.performance.shopify.job;
 
 import com.nocturna.performance.config.SchedulerProperties;
-import com.nocturna.performance.service.ExportService;
-import com.nocturna.performance.service.ProductService;
+import com.nocturna.performance.shopify.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ public class ShopifyProductsAPITask {
     @Scheduled(fixedRate = 300000)
     public void runTask() throws IOException {
         log.info("Starting ProductAPI Job");
-        productService.shopifyCreateProducts();
+        //productService.shopifyCreateProducts();
         log.info("Ending ProductAPI Job");
     }
 

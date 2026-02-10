@@ -1,4 +1,4 @@
-package com.nocturna.performance.dto.exportproduct;
+package com.nocturna.performance.export.dto;
 
 import java.io.Serializable;
 import java.util.Objects;

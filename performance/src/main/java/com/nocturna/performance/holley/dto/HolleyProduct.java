@@ -1,23 +1,16 @@
-package com.nocturna.performance.dto.exportproduct;
+package com.nocturna.performance.holley.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Table(name = "export_products")
+@Table(name = "nocturna_products")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@IdClass(ExportProductID.class)
-@NamedNativeQueries({
-        @NamedNativeQuery(name = "ExportProduct_FindByBrandCode",query = "select * from export_products where brand = ?", resultClass = ExportProduct.class)
-})
-public class ExportProduct {
-
+public class HolleyProduct {
     @Column
     private String category;
     @Column
@@ -26,7 +19,8 @@ public class ExportProduct {
     private String brand_name;
     @Column
     private String name;
-
+    @Id
+    private String upc;
     @Column
     private String short_description;
     @Column
@@ -39,12 +33,8 @@ public class ExportProduct {
     private String invoice_description;
     @Column(columnDefinition = "TEXT")
     private String media_url;
-    @Id
     @Column
     private String part_number;
-    @Id
-    @Column
-    private String upc;
 
     @Override
     public String toString() {
@@ -94,6 +84,14 @@ public class ExportProduct {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getUpc() {
+        return upc;
+    }
+
+    public void setUpc(String upc) {
+        this.upc = upc;
     }
 
     public String getShort_description() {
@@ -150,13 +148,5 @@ public class ExportProduct {
 
     public void setPart_number(String part_number) {
         this.part_number = part_number;
-    }
-
-    public String getUpc() {
-        return upc;
-    }
-
-    public void setUpc(String upc) {
-        this.upc = upc;
     }
 }

@@ -1,23 +1,16 @@
-package com.nocturna.performance.service;
+package com.nocturna.performance.shopify.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nocturna.performance.config.NocturnaProperties;
 import com.nocturna.performance.config.ShopifyProperties;
-import com.nocturna.performance.dto.catalog.Products;
-import com.nocturna.performance.dto.exportproduct.ExportProduct;
-import com.nocturna.performance.dto.exportproduct.repository.ExportProductRepository;
-import com.nocturna.performance.dto.shopify.ShopifyProductWrapper;
-import com.nocturna.performance.util.ExcelFileExport;
+import com.nocturna.performance.export.dto.ExportProduct;
+import com.nocturna.performance.export.dto.repository.ExportProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -39,7 +32,7 @@ public class ProductService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Shopify-Access-Token", shopifyProperties.getToken());
             headers.setContentType(MediaType.APPLICATION_JSON);
-            ShopifyProductWrapper spw = new ShopifyProductWrapper(prod);
+            //ShopifyProductWrapper spw = new ShopifyProductWrapper(prod);
             String jsonBody = convertObjectToJsonString(prod);
             logger.info("jsonbody ::" + jsonBody);
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
