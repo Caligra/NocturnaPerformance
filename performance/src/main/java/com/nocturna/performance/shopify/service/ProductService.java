@@ -2,8 +2,8 @@ package com.nocturna.performance.shopify.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nocturna.performance.config.ShopifyProperties;
-import com.nocturna.performance.export.dto.ExportProduct;
-import com.nocturna.performance.export.dto.repository.ExportProductRepository;
+import com.nocturna.performance.shopify.dto.ShopifyProduct;
+import com.nocturna.performance.shopify.dto.repository.ShopifyProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +22,11 @@ public class ProductService {
     @Autowired
     private ShopifyProperties shopifyProperties;
     @Autowired
-    private ExportProductRepository exportProductRepository;
+    private ShopifyProductRepository shopifyProductRepository;
 
     public void shopifyCreateProducts() {
-        List<ExportProduct> allExport = exportProductRepository.findAll();
-        for (ExportProduct prod : allExport) {
+        List<ShopifyProduct> allExport = shopifyProductRepository.findAll();
+        for (ShopifyProduct prod : allExport) {
             logger.info(prod.toString());
 
             HttpHeaders headers = new HttpHeaders();

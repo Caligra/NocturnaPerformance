@@ -1,7 +1,7 @@
-package com.nocturna.performance.holley.job;
+package com.nocturna.performance.catalog.job;
 
+import com.nocturna.performance.catalog.service.CatalogService;
 import com.nocturna.performance.config.SchedulerProperties;
-import com.nocturna.performance.holley.service.CatalogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class CatalogTask {
     //@Scheduled(cron = "${cron.schedule.catalog}")
     @Scheduled(fixedRate = 3000000) //50 mins set to test
     public void runTask(){
-        boolean debug = false;
+        boolean debug = true;
         if(debug) {
             log.info("Starting Catalog Job");
             String[] brandCodes = schedulerProperties.getBrandcodes().split("\\+");

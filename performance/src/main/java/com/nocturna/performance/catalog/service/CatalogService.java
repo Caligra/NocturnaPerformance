@@ -1,11 +1,13 @@
-package com.nocturna.performance.holley.service;
+package com.nocturna.performance.catalog.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nocturna.performance.catalog.dto.HolleyImage;
+import com.nocturna.performance.catalog.dto.HolleyProduct;
+import com.nocturna.performance.catalog.dto.repository.HolleyImagesRepository;
+import com.nocturna.performance.catalog.dto.repository.HolleyRepository;
 import com.nocturna.performance.config.NocturnaProperties;
 import com.nocturna.performance.config.SchedulerProperties;
-import com.nocturna.performance.holley.dto.HolleyProduct;
-import com.nocturna.performance.holley.dto.HolleyProducts;
-import com.nocturna.performance.holley.dto.repository.HolleyRepository;
+import com.nocturna.performance.catalog.dto.wrappers.HolleyProducts;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +34,9 @@ public class CatalogService {
     private RestTemplate restTemplate;
     @Autowired
     private HolleyRepository holleyRepository;
+
+    @Autowired
+    HolleyImagesRepository holleyImagesRepository;
     @Autowired
     private NocturnaProperties nocturnaProperties;
     @Autowired
@@ -67,6 +73,7 @@ public class CatalogService {
 
         try {
             //Step 1: Store Holley data as is in DB
+            // TODO add insert/update date distinct
             if (!insertList.isEmpty()) {
                 logger.info("holleyRepository.saveAll:: !insertList.isEmpty()");
                 holleyRepository.saveAll(insertList);
@@ -74,23 +81,63 @@ public class CatalogService {
         } catch (DataIntegrityViolationException | HibernateException ex) {
             ex.printStackTrace();
         }
+
+        /**
+         * Splitting URL links to exclude YouTube links
+         */
+        var allImgToInsert = new ArrayList<HolleyImage>();
+
+        for (HolleyProduct product : insertList) {
+            List<HolleyImage> urlsByProduct = splitURLbyProduct(product);
+            if (!urlsByProduct.isEmpty()) {
+                allImgToInsert.addAll(urlsByProduct);
+            }
+        }
+        logger.info("allImgToInsert.getProducts().size():: " + allImgToInsert.size());
+
+        try {
+            //Step 1: Store Holley data as is in DB
+            // TODO add insert/update date distinct
+            if (!allImgToInsert.isEmpty()) {
+                logger.info("holleyImagesRepository.saveAll:: !allImgToInsert.isEmpty()");
+                holleyImagesRepository.saveAll(allImgToInsert);
+            }
+        } catch (DataIntegrityViolationException | HibernateException ex) {
+            ex.printStackTrace();
+        }
+
+
     }
 
     //Duplicate check by looping through UPC values, unique values are added to a set to be streamed into a list
-    private List<HolleyProduct> duplicateUPCCheck(List<HolleyProduct> inputList){
+    private List<HolleyProduct> duplicateUPCCheck(List<HolleyProduct> inputList) {
         Set<String> original = new HashSet<>();
         Set<HolleyProduct> unique = new HashSet<>();
-        for(HolleyProduct product: inputList){
+        for (HolleyProduct product : inputList) {
             String upc = product.getUpc();
             //add returns false if it wasn't added, log duplicate values, else add to unique
-            if(!original.add(upc)){
-                logger.info("duplicateUPCCheck()::Removed upc " + upc );
-            }else{
+            if (!original.add(upc)) {
+                logger.info("duplicateUPCCheck()::Removed upc " + upc);
+            } else {
                 unique.add(product);
             }
         }
         //Stream unique to return list
         return unique.stream().toList();
+    }
+
+    private List<HolleyImage> splitURLbyProduct(HolleyProduct product) {
+        var retObj = new ArrayList<HolleyImage>();
+        var fullMediaURLString = product.getMediaUrl();
+        if (fullMediaURLString != null && !fullMediaURLString.isEmpty()) {
+            var mediaArray = fullMediaURLString.split("\\+");
+            for (String link : mediaArray) {
+                if (!link.contains("youtube")) {
+                    retObj.add(new HolleyImage(link, product));
+                }
+            }
+        }
+        return retObj;
     }
 
 }

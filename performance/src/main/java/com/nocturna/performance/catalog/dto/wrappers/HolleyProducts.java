@@ -1,6 +1,7 @@
-package com.nocturna.performance.holley.dto;
+package com.nocturna.performance.catalog.dto.wrappers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nocturna.performance.catalog.dto.HolleyProduct;
 
 import java.util.List;
 

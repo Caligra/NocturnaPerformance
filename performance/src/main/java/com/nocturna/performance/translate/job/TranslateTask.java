@@ -24,7 +24,10 @@ public class TranslateTask {
     //@Scheduled(cron = "${cron.schedule.translate}")
     @Scheduled(fixedRate = 3000000) //50 mins set to test
     public void runTask() {
-        boolean debug = true;
+        /**
+         * TODO fetch everything from table and check if translation exist, if no, API
+         */
+        boolean debug = false;
         if (debug) {
             log.info("Starting TranslateTask Job");
             String[] brandCodes = schedulerProperties.getBrandcodes().split("\\+");

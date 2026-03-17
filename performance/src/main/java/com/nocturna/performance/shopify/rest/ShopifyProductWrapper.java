@@ -1,4 +1,6 @@
-package com.nocturna.performance.shopify.dto;
+package com.nocturna.performance.shopify.rest;
+
+import com.nocturna.performance.shopify.dto.ShopifyProduct;
 
 public class ShopifyProductWrapper {
     private ShopifyProduct product;

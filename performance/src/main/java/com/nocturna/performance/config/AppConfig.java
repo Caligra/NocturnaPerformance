@@ -8,10 +8,8 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @EnableConfigurationProperties
 public class AppConfig {
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
 }
