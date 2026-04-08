@@ -23,7 +23,7 @@ public class HolleyImage {
     @JoinColumn(name = "upc", referencedColumnName = "upc")
     private HolleyProduct product;
 
-    public HolleyImage(String url, HolleyProduct product ){
+    public HolleyImage(String url , HolleyProduct product ){
         this.product = product;
         this.url = url;
     }

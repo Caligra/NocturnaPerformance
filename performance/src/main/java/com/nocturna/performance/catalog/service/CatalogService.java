@@ -21,11 +21,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.util.*;
 
 @Service
 public class CatalogService {
@@ -66,35 +68,42 @@ public class CatalogService {
         HolleyProducts holleyProducts = objectMapper.readValue(response.getBody(), HolleyProducts.class);
         //Extract object data from wrapper
         List<HolleyProduct> holleyProductList = holleyProducts.getHolleyProducts();
-        logger.info("responseList.getProducts().size():: " + holleyProductList.size());
         //Duplicate UPC check
         List<HolleyProduct> insertList = duplicateUPCCheck(holleyProductList);
-        logger.info("responseList.insertList().size():: " + insertList.size());
 
         try {
             //Step 1: Store Holley data as is in DB
             // TODO add insert/update date distinct
             if (!insertList.isEmpty()) {
-                logger.info("holleyRepository.saveAll:: !insertList.isEmpty()");
                 holleyRepository.saveAll(insertList);
             }
         } catch (DataIntegrityViolationException | HibernateException ex) {
             ex.printStackTrace();
         }
 
+        /*for (HolleyProduct product : insertList) {
+            try {
+                holleyRepository.save(product);
+                holleyRepository.flush(); // forces SQL execution so you catch the error here
+            } catch (Exception e) {
+                System.err.println("Failed to persist: " + product.toString());
+                e.printStackTrace();
+                // continue automatically goes to next product
+            }
+        }*/
+
         /**
-         * Splitting URL links to exclude YouTube links
+         * Splitting URL links to exclude YouTube links and pdf files
          */
         var allImgToInsert = new ArrayList<HolleyImage>();
-
         for (HolleyProduct product : insertList) {
-            List<HolleyImage> urlsByProduct = splitURLbyProduct(product);
+            List<HolleyImage> urlsByProduct = generateImagesByProduct(product);
             if (!urlsByProduct.isEmpty()) {
                 allImgToInsert.addAll(urlsByProduct);
             }
         }
-        logger.info("allImgToInsert.getProducts().size():: " + allImgToInsert.size());
 
+        logger.info("allImgToInsert.getProducts().size():: " + allImgToInsert.size());
         try {
             //Step 1: Store Holley data as is in DB
             // TODO add insert/update date distinct
@@ -105,39 +114,66 @@ public class CatalogService {
         } catch (DataIntegrityViolationException | HibernateException ex) {
             ex.printStackTrace();
         }
-
-
     }
 
     //Duplicate check by looping through UPC values, unique values are added to a set to be streamed into a list
     private List<HolleyProduct> duplicateUPCCheck(List<HolleyProduct> inputList) {
+        logger.info("duplicateUPCCheck()::inputList size " + inputList.size());
         Set<String> original = new HashSet<>();
         Set<HolleyProduct> unique = new HashSet<>();
         for (HolleyProduct product : inputList) {
             String upc = product.getUpc();
-            //add returns false if it wasn't added, log duplicate values, else add to unique
-            if (!original.add(upc)) {
-                logger.info("duplicateUPCCheck()::Removed upc " + upc);
-            } else {
-                unique.add(product);
+            if (upc != null && !upc.isEmpty()) {
+                //add returns false if it wasn't added, log duplicate values, else add to unique
+                if (!original.add(upc)) {
+                    logger.info("duplicateUPCCheck()::Removed upc " + upc);
+                } else {
+                    unique.add(product);
+                }
             }
         }
         //Stream unique to return list
+        logger.info("duplicateUPCCheck()::unique size " + unique.size());
         return unique.stream().toList();
     }
 
-    private List<HolleyImage> splitURLbyProduct(HolleyProduct product) {
+    private List<HolleyImage> generateImagesByProduct(HolleyProduct product) {
+        //Object to return generated Image Objects
         var retObj = new ArrayList<HolleyImage>();
-        var fullMediaURLString = product.getMediaUrl();
-        if (fullMediaURLString != null && !fullMediaURLString.isEmpty()) {
-            var mediaArray = fullMediaURLString.split("\\+");
-            for (String link : mediaArray) {
-                if (!link.contains("youtube")) {
-                    retObj.add(new HolleyImage(link, product));
+        //read upc and mediaURL from product
+        var upc = product.getUpc();
+        var mediaURLString = product.getMediaUrl();
+        //filtering nulls
+        if (upc != null && mediaURLString != null && !mediaURLString.isEmpty()) {
+            var mediaArray = mediaURLString.split("\\+");
+            for (String urlLink : mediaArray) {
+                if (isImageUrlValid(urlLink)) {
+                    retObj.add(new HolleyImage(urlLink, product));
                 }
             }
         }
         return retObj;
     }
+
+    public static boolean isImageUrlValid(String urlString) {
+        try {
+            URL url = URI.create(urlString).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("HEAD"); // fast check, no body download
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.connect();
+
+            int responseCode = connection.getResponseCode();
+            String contentType = connection.getContentType();
+
+            return responseCode == HttpURLConnection.HTTP_OK &&
+                    contentType != null &&
+                    contentType.startsWith("image");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
 }

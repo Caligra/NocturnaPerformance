@@ -1,11 +1,8 @@
 package com.nocturna.performance.catalog.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +16,7 @@ public class HolleyProduct {
     @Column
     private String brand;
     @Column(name = "brand_name")
+    @JsonProperty("brand_name")
     private String brandName;
     @Column
     private String name;
@@ -26,42 +24,61 @@ public class HolleyProduct {
     @Column(length = 12)
     private String upc;
     @Column(name = "short_description")
+    @JsonProperty("short_description")
     private String shortDescription;
     @Column(name = "invoice_description")
+    @JsonProperty("invoice_description")
     private String invoiceDescription;
     @Column(columnDefinition = "TEXT", name = "marketing_description")
+    @JsonProperty("marketing_description")
     private String marketingDescription;
     @Column(columnDefinition = "TEXT", name = "media_url")
+    @JsonProperty("media_url")
     private String mediaUrl;
     @Column(name = "long_description")
+    @JsonProperty("long_description")
     private String longDescription;
     @Column(name = "sub_category")
+    @JsonProperty("sub_category")
     private String subCategory;
     @Column(name = "part_number")
+    @JsonProperty("part_number")
     private String partNumber;
     @Column(name = "application_make")
+    @JsonProperty("application_make")
     private String applicationMake;
     @Column(name = "shipping_height")
+    @JsonProperty("shipping_height")
     private String shippingHeight;
     @Column(name = "shipping_width")
+    @JsonProperty("shipping_width")
     private String shippingWidth;
     @Column(name = "shipping_length")
+    @JsonProperty("shipping_length")
     private String shippingLength;
     @Column(name = "merch_width")
+    @JsonProperty("merch_width")
     private String merchWidth;
     @Column(name = "merch_heigth")
+    @JsonProperty("merch_heigth")
     private String merchHeigth;
     @Column(name = "merch_length")
+    @JsonProperty("merch_length")
     private String merchLength;
     @Column(name = "merch_weight")
+    @JsonProperty("merch_weight")
     private String merchWeight;
-    @Column(name = "application_model")
+    @Column(columnDefinition = "TEXT", name = "application_model")
+    @JsonProperty("application_model")
     private String applicationModel;
     @Column(name = "application_year_from_to")
+    @JsonProperty("application_year_from_to")
     private String applicationYearFromTo;
-    @Column(name = "application_full_detail")
+    @Column(columnDefinition = "TEXT", name = "application_full_detail")
+    @JsonProperty("application_full_detail")
     private String applicationFullDetail;
     @Column(name = "list_price")
+    @JsonProperty("list_price")
     private String list_price;
     @Column(name = "created_on")
     private LocalDateTime createdOn;
@@ -309,5 +326,13 @@ public class HolleyProduct {
 
     public void setLastUpdated(LocalDateTime lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+
+    @Override
+    public String toString() {
+        return "HolleyProduct{" +
+                "upc='" + upc + '\'' +
+                ", applicationFullDetail='" + applicationFullDetail + '\'' +
+                '}';
     }
 }
