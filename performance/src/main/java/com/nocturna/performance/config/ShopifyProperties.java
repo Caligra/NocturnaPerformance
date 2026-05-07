@@ -1,28 +1,28 @@
 package com.nocturna.performance.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-@ConfigurationProperties(prefix = "shopify.site")
+@Configuration
+@Getter
+@Setter
 public class ShopifyProperties {
 
-    private String products;
-    private String token;
+    @Value("${shopify.shop}")
+    private String shop;
+    @Value("${shopify.rest.token}")
+    private String restToken;
 
-    public String getProducts() {
-        return products;
+    @Value("${shopify.api.version}")
+    private String apiVersion;
+
+    @Value("${shopify.site.products}")
+    private String createRestProductsUrl;
+
+    public String getBaseUrl() {
+        return "https://" + shop + "/admin/api/" + apiVersion;
     }
 
-    public void setProducts(String products) {
-        this.products = products;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
 }

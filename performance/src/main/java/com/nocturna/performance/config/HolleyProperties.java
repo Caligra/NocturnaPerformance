@@ -6,13 +6,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "cron.schedule")
+@ConfigurationProperties(prefix = "holley.pdm")
 @Getter
 @Setter
-public class SchedulerProperties {
-    private String catalog;
-    private String translate;
-    private String export;
-    private String brandcodes;
-
+public class HolleyProperties {
+    private String url;
+    private String token;
+    private String projectid;
+    private String languaje;
+    private String template;
 }

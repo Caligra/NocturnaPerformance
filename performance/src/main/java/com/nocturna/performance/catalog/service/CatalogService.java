@@ -4,25 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nocturna.performance.catalog.dto.HolleyImage;
 import com.nocturna.performance.catalog.dto.HolleyProduct;
 import com.nocturna.performance.catalog.dto.repository.HolleyImagesRepository;
-import com.nocturna.performance.catalog.dto.repository.HolleyRepository;
-import com.nocturna.performance.config.NocturnaProperties;
+import com.nocturna.performance.catalog.dto.repository.HolleyProductRepository;
+import com.nocturna.performance.config.HolleyProperties;
 import com.nocturna.performance.config.SchedulerProperties;
 import com.nocturna.performance.catalog.dto.wrappers.HolleyProducts;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -31,36 +25,36 @@ import java.util.*;
 
 @Service
 public class CatalogService {
+    private final RestTemplate restTemplate;
+    private final HolleyProductRepository holleyProductRepository;
+    private final HolleyImagesRepository holleyImagesRepository;
+    private final HolleyProperties holleyProperties;
+    private final SchedulerProperties schedulerProperties;
     private static final Logger logger = LoggerFactory.getLogger(CatalogService.class);
-    @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
-    private HolleyRepository holleyRepository;
 
-    @Autowired
-    HolleyImagesRepository holleyImagesRepository;
-    @Autowired
-    private NocturnaProperties nocturnaProperties;
-    @Autowired
-    private SchedulerProperties schedulerProperties;
+    public CatalogService(RestTemplate restTemplate, HolleyProductRepository holleyProductRepository, HolleyImagesRepository holleyImagesRepository, HolleyProperties holleyProperties, SchedulerProperties schedulerProperties) {
+        this.restTemplate = restTemplate;
+        this.holleyProductRepository = holleyProductRepository;
+        this.holleyImagesRepository = holleyImagesRepository;
+        this.holleyProperties = holleyProperties;
+        this.schedulerProperties = schedulerProperties;
+    }
 
     public void getBrandCatalog(String code) throws IOException {
         /*
          * Method to fetch catalog
          * */
         logger.info("Starting getBrandCatalog for brand:: " + code);
-        fetchCatalogDataByBrand(schedulerProperties.getTemplate(), code);
+        fetchCatalogDataByBrand(holleyProperties.getTemplate(), code);
         logger.info("Finishing getBrandCatalog for brand:: " + code);
     }
 
     public void fetchCatalogDataByBrand(String template, String brandCode) throws IOException {
 
         //Build our headers for the call
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("API-Token", nocturnaProperties.getToken());
-        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(getHeaders());
         //Build and execute the GET call to download brand catalog
-        ResponseEntity<String> response = restTemplate.exchange(nocturnaProperties.getUrl(),
+        ResponseEntity<String> response = restTemplate.exchange(holleyProperties.getUrl(),
                 HttpMethod.GET, requestEntity, new ParameterizedTypeReference<>() {
                 }, template, brandCode);
         //Wrapper to parse json into Holley DTO
@@ -73,26 +67,15 @@ public class CatalogService {
 
         try {
             //Step 1: Store Holley data as is in DB
-            // TODO add insert/update date distinct
             if (!insertList.isEmpty()) {
-                holleyRepository.saveAll(insertList);
+                holleyProductRepository.saveAll(insertList);
             }
         } catch (DataIntegrityViolationException | HibernateException ex) {
             ex.printStackTrace();
         }
 
-        /*for (HolleyProduct product : insertList) {
-            try {
-                holleyRepository.save(product);
-                holleyRepository.flush(); // forces SQL execution so you catch the error here
-            } catch (Exception e) {
-                System.err.println("Failed to persist: " + product.toString());
-                e.printStackTrace();
-                // continue automatically goes to next product
-            }
-        }*/
-
         /**
+         * Processing URL Media before inserting
          * Splitting URL links to exclude YouTube links and pdf files
          */
         var allImgToInsert = new ArrayList<HolleyImage>();
@@ -102,13 +85,10 @@ public class CatalogService {
                 allImgToInsert.addAll(urlsByProduct);
             }
         }
-
-        logger.info("allImgToInsert.getProducts().size():: " + allImgToInsert.size());
+        logger.info("CatalogService:: Brand:: " + brandCode + " allImgToInsert.getProducts().size():: " + allImgToInsert.size());
         try {
-            //Step 1: Store Holley data as is in DB
-            // TODO add insert/update date distinct
             if (!allImgToInsert.isEmpty()) {
-                logger.info("holleyImagesRepository.saveAll:: !allImgToInsert.isEmpty()");
+                logger.info("CatalogService:: Brand:: " + brandCode + " holleyImagesRepository.saveAll:: !allImgToInsert.isEmpty()");
                 holleyImagesRepository.saveAll(allImgToInsert);
             }
         } catch (DataIntegrityViolationException | HibernateException ex) {
@@ -118,7 +98,7 @@ public class CatalogService {
 
     //Duplicate check by looping through UPC values, unique values are added to a set to be streamed into a list
     private List<HolleyProduct> duplicateUPCCheck(List<HolleyProduct> inputList) {
-        logger.info("duplicateUPCCheck()::inputList size " + inputList.size());
+        logger.info("CatalogService::duplicateUPCCheck()::inputList size " + inputList.size());
         Set<String> original = new HashSet<>();
         Set<HolleyProduct> unique = new HashSet<>();
         for (HolleyProduct product : inputList) {
@@ -126,14 +106,14 @@ public class CatalogService {
             if (upc != null && !upc.isEmpty()) {
                 //add returns false if it wasn't added, log duplicate values, else add to unique
                 if (!original.add(upc)) {
-                    logger.info("duplicateUPCCheck()::Removed upc " + upc);
+                    logger.info("CatalogService::duplicateUPCCheck()::Removed upc " + upc);
                 } else {
                     unique.add(product);
                 }
             }
         }
         //Stream unique to return list
-        logger.info("duplicateUPCCheck()::unique size " + unique.size());
+        logger.info("CatalogService::duplicateUPCCheck()::unique size " + unique.size());
         return unique.stream().toList();
     }
 
@@ -147,9 +127,9 @@ public class CatalogService {
         if (upc != null && mediaURLString != null && !mediaURLString.isEmpty()) {
             var mediaArray = mediaURLString.split("\\+");
             for (String urlLink : mediaArray) {
-                if (isImageUrlValid(urlLink)) {
+                //if (isImageUrlValid(urlLink)) {
                     retObj.add(new HolleyImage(urlLink, product));
-                }
+                //}
             }
         }
         return retObj;
@@ -173,6 +153,12 @@ public class CatalogService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private HttpHeaders getHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("API-Token", holleyProperties.getToken());
+        return headers;
     }
 
 

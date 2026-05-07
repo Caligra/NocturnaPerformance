@@ -21,7 +21,7 @@ public class CatalogTask {
     //@Scheduled(cron = "${cron.schedule.catalog}")
     @Scheduled(fixedRate = 3000000) //50 mins set to test
     public void runTask(){
-        boolean debug = true;
+        boolean debug = false;
         if(debug) {
             log.info("Starting Catalog Job");
             String[] brandCodes = schedulerProperties.getBrandcodes().split("\\+");

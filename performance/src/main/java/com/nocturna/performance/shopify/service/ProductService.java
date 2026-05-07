@@ -15,14 +15,16 @@ import java.util.List;
 
 @Service
 public class ProductService {
-    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
-    @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
-    private ShopifyProperties shopifyProperties;
-    @Autowired
-    private ShopifyProductRepository shopifyProductRepository;
+    private final RestTemplate restTemplate;
+    private final ShopifyProperties shopifyProperties;
+    private final ShopifyProductRepository shopifyProductRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+    public ProductService(RestTemplate restTemplate, ShopifyProperties shopifyProperties, ShopifyProductRepository shopifyProductRepository){
+        this.restTemplate=restTemplate;
+        this.shopifyProperties=shopifyProperties;
+        this.shopifyProductRepository=shopifyProductRepository;
+    }
 
     public void shopifyCreateProducts() {
         List<ShopifyProduct> allExport = shopifyProductRepository.findAll();
@@ -30,13 +32,13 @@ public class ProductService {
             logger.info(prod.toString());
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Shopify-Access-Token", shopifyProperties.getToken());
+            headers.set("X-Shopify-Access-Token", shopifyProperties.getRestToken());
             headers.setContentType(MediaType.APPLICATION_JSON);
             //ShopifyProductWrapper spw = new ShopifyProductWrapper(prod);
             String jsonBody = convertObjectToJsonString(prod);
             logger.info("jsonbody ::" + jsonBody);
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
-            String answer = restTemplate.postForObject(shopifyProperties.getProducts(), requestEntity, String.class);
+            String answer = restTemplate.postForObject(shopifyProperties.getCreateRestProductsUrl(), requestEntity, String.class);
             System.out.println(answer);
         }
         /*ResponseEntity<String> response = restTemplate.exchange(shopifyProperties.getProducts(),

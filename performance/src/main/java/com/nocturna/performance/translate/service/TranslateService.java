@@ -5,10 +5,9 @@ import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.nocturna.performance.catalog.dto.HolleyProduct;
-import com.nocturna.performance.catalog.dto.repository.HolleyRepository;
-import com.nocturna.performance.config.NocturnaProperties;
+import com.nocturna.performance.catalog.dto.repository.HolleyProductRepository;
+import com.nocturna.performance.config.HolleyProperties;
 import com.nocturna.performance.config.SchedulerProperties;
-import com.nocturna.performance.shopify.dto.ShopifyProduct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +25,9 @@ public class TranslateService {
     @Autowired
     private SchedulerProperties schedulerProperties;
     @Autowired
-    private NocturnaProperties nocturnaProperties;
+    private HolleyProperties holleyProperties;
     @Autowired
-    private HolleyRepository productEngRepository;
+    private HolleyProductRepository productEngRepository;
 
     public String performTranslateServiceOperation() {
         /**
@@ -68,7 +67,7 @@ public class TranslateService {
             engDesc.add((product.getMarketingDescription() == null || product.getMarketingDescription().isEmpty()) ? "" : product.getMarketingDescription());
             engDesc.add((product.getInvoiceDescription() == null || product.getInvoiceDescription().isEmpty()) ? "" : product.getInvoiceDescription());
             // Sending translation API call
-            var translatedDesc = executeTranslation(nocturnaProperties.getProjectid(), nocturnaProperties.getLanguaje(), engDesc);
+            var translatedDesc = executeTranslation(holleyProperties.getProjectid(), holleyProperties.getLanguaje(), engDesc);
 
 
 

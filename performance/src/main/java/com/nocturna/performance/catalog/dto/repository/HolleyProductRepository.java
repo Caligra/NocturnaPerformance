@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface HolleyRepository extends JpaRepository<HolleyProduct, String> {
+public interface HolleyProductRepository extends JpaRepository<HolleyProduct, String> {
     List<HolleyProduct> findByBrand(String brandCode);
 }
