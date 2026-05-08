@@ -22,12 +22,15 @@ import java.util.Map;
 @Service
 public class TranslateService {
     private static final Logger logger = LoggerFactory.getLogger(TranslateService.class);
-    @Autowired
-    private SchedulerProperties schedulerProperties;
-    @Autowired
-    private HolleyProperties holleyProperties;
-    @Autowired
-    private HolleyProductRepository productEngRepository;
+    private final SchedulerProperties schedulerProperties;
+    private final HolleyProperties holleyProperties;
+    private final HolleyProductRepository holleyProductRepository;
+
+    public TranslateService(HolleyProductRepository holleyProductRepository, HolleyProperties holleyProperties, SchedulerProperties schedulerProperties) {
+        this.holleyProductRepository = holleyProductRepository;
+        this.holleyProperties = holleyProperties;
+        this.schedulerProperties = schedulerProperties;
+    }
 
     public String performTranslateServiceOperation() {
         /**
@@ -52,23 +55,33 @@ public class TranslateService {
      */
     public void translateProductItemDescriptions(String brand) throws IOException {
         //Fetch products using brand code
-        var productsByBrand = productEngRepository.findByBrand(brand);
+        var productsByBrand = holleyProductRepository.findByBrand(brand);
         // Logging size
-        logger.info("translateProductItemDescriptions:: " + brand + " size():: " + productsByBrand.size());
+        logger.info("translateProductItemDescriptions:: " + brand + " size():: " + productsByBrand.size());//OBS COP BOOTS 8 PK FORD 2V
+        var variable = new ArrayList<String>();
+        variable.add("OBS COP BOOTS 8 PK FORD 2V");
+        var translatedtestDesc = executeSingleTranslationTest(holleyProperties.getProjectid(), variable);
+        logger.info("translateProductItemDescriptions:: translatedtestDesc():: " + translatedtestDesc);//OBS COP BOOTS 8 PK FORD 2V
 
         // Loop products and translate, then fix format and store in shopify table
         for (HolleyProduct product : productsByBrand) {
             /**
              * Generating Map for text to be translated by Google API
              */
+            /*logger.info("translateProductItemDescriptions:: " + product.getUpc() + " shD():: " + product.getShortDescription());
+            logger.info("translateProductItemDescriptions:: " + product.getUpc() + " loD():: " + product.getLongDescription());
+            logger.info("translateProductItemDescriptions:: " + product.getUpc() + " mkD():: " + product.getMarketingDescription());
+            logger.info("translateProductItemDescriptions:: " + product.getUpc() + " inDe():: " + product.getInvoiceDescription());
+*/
             var engDesc = new ArrayList<String>();
             engDesc.add((product.getShortDescription() == null || product.getShortDescription().isEmpty()) ? "" : product.getShortDescription());
             engDesc.add((product.getLongDescription() == null || product.getLongDescription().isEmpty()) ? "" : product.getLongDescription());
             engDesc.add((product.getMarketingDescription() == null || product.getMarketingDescription().isEmpty()) ? "" : product.getMarketingDescription());
             engDesc.add((product.getInvoiceDescription() == null || product.getInvoiceDescription().isEmpty()) ? "" : product.getInvoiceDescription());
-            // Sending translation API call
-            var translatedDesc = executeTranslation(holleyProperties.getProjectid(), holleyProperties.getLanguaje(), engDesc);
+            /*logger.info("translateProductItemDescriptions:: " + product.getUpc() + " engDesc():: " + engDesc);*/
 
+            // Sending translation API call
+            //var translatedDesc = executeTranslation(holleyProperties.getProjectid(), holleyProperties.getLanguaje(), engDesc);
 
 
             // Creating Shopify Product with format for insertion after creating it
@@ -104,24 +117,40 @@ public class TranslateService {
     }
 
 
-
     /**
      * Method to execute Google Translate API
      */
     public static Map<String, String> executeTranslation(String projectId, String targetLanguage, List<String> descriptions)
             throws IOException {
 
+        Map<String, String> translatedDesc = new HashMap<>();
         try (TranslationServiceClient client = TranslationServiceClient.create()) {
             LocationName parent = LocationName.of(projectId, "global");
             TranslateTextResponse response = client.translateText(parent.toString(), targetLanguage, descriptions);
             // Store the translations for descriptions in map to be processed
-            Map<String, String> translatedDesc = new HashMap<>();
             List<Translation> translationList = response.getTranslationsList();
             translatedDesc.put("shortDesc", translationList.get(0).getTranslatedText());
             translatedDesc.put("LongDesc", translationList.get(1).getTranslatedText());
             translatedDesc.put("marketDesc", translationList.get(2).getTranslatedText());
             translatedDesc.put("invoiceDesc", translationList.get(3).getTranslatedText());
-            return translatedDesc;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return translatedDesc;
+    }
+
+    public String executeSingleTranslationTest(String projectId, List<String> descriptions) {
+
+        String outValue = "";
+        try (TranslationServiceClient client = TranslationServiceClient.create()) {
+            LocationName parent = LocationName.of(projectId, "global");
+            TranslateTextResponse response = client.translateText(parent.toString(), holleyProperties.getLanguaje(), descriptions);
+            // Store the translations for descriptions in map to be processed
+            List<Translation> translationList = response.getTranslationsList();
+            outValue=translationList.get(0).getTranslatedText();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return outValue;
     }
 }

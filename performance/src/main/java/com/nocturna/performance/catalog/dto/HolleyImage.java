@@ -5,14 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
+
+import java.time.LocalDateTime;
+
 
 @Entity
-
+@Table(name = "holley_images")
+@DynamicUpdate
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name = "holley_images")
 public class HolleyImage {
 
     @Id
@@ -22,6 +27,12 @@ public class HolleyImage {
     @ManyToOne
     @JoinColumn(name = "upc", referencedColumnName = "upc")
     private HolleyProduct product;
+
+    @CreationTimestamp
+    @Column(name = "created_on", updatable = false)
+    private LocalDateTime createdOn;
+    @Column(name = "last_updated", insertable = false, updatable = false)
+    private LocalDateTime lastUpdated;
 
     public HolleyImage(String url , HolleyProduct product ){
         this.product = product;

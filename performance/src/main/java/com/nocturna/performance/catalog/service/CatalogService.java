@@ -127,9 +127,12 @@ public class CatalogService {
         if (upc != null && mediaURLString != null && !mediaURLString.isEmpty()) {
             var mediaArray = mediaURLString.split("\\+");
             for (String urlLink : mediaArray) {
-                //if (isImageUrlValid(urlLink)) {
+                /*if (isImageUrlValid(urlLink)) {
                     retObj.add(new HolleyImage(urlLink, product));
-                //}
+                }*/
+                if(!urlLink.contains("pdf") && !urlLink.contains("youtube") ) {
+                    retObj.add(new HolleyImage(urlLink, product));
+                }
             }
         }
         return retObj;

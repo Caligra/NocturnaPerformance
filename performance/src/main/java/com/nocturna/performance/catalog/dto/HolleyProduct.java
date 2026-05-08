@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -91,7 +90,7 @@ public class HolleyProduct {
     @CreationTimestamp
     @Column(name = "created_on", updatable = false)
     private LocalDateTime createdOn;
-    @Column(name = "last_updated")
+    @Column(name = "last_updated", insertable = false, updatable = false)
     private LocalDateTime lastUpdated;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
