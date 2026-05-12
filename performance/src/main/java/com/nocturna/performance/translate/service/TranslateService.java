@@ -2,15 +2,16 @@ package com.nocturna.performance.translate.service;
 
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextResponse;
+import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.nocturna.performance.catalog.dto.HolleyProduct;
 import com.nocturna.performance.catalog.dto.repository.HolleyProductRepository;
 import com.nocturna.performance.config.HolleyProperties;
 import com.nocturna.performance.config.SchedulerProperties;
+import com.nocturna.performance.shopify.dto.ShopifyProduct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -58,31 +59,32 @@ public class TranslateService {
         var productsByBrand = holleyProductRepository.findByBrand(brand);
         // Logging size
         logger.info("translateProductItemDescriptions:: " + brand + " size():: " + productsByBrand.size());//OBS COP BOOTS 8 PK FORD 2V
-        var variable = new ArrayList<String>();
-        variable.add("OBS COP BOOTS 8 PK FORD 2V");
-        var translatedtestDesc = executeSingleTranslationTest(holleyProperties.getProjectid(), variable);
-        logger.info("translateProductItemDescriptions:: translatedtestDesc():: " + translatedtestDesc);//OBS COP BOOTS 8 PK FORD 2V
 
         // Loop products and translate, then fix format and store in shopify table
         for (HolleyProduct product : productsByBrand) {
-            /**
-             * Generating Map for text to be translated by Google API
-             */
-            /*logger.info("translateProductItemDescriptions:: " + product.getUpc() + " shD():: " + product.getShortDescription());
-            logger.info("translateProductItemDescriptions:: " + product.getUpc() + " loD():: " + product.getLongDescription());
-            logger.info("translateProductItemDescriptions:: " + product.getUpc() + " mkD():: " + product.getMarketingDescription());
-            logger.info("translateProductItemDescriptions:: " + product.getUpc() + " inDe():: " + product.getInvoiceDescription());
-*/
-            var engDesc = new ArrayList<String>();
-            engDesc.add((product.getShortDescription() == null || product.getShortDescription().isEmpty()) ? "" : product.getShortDescription());
-            engDesc.add((product.getLongDescription() == null || product.getLongDescription().isEmpty()) ? "" : product.getLongDescription());
-            engDesc.add((product.getMarketingDescription() == null || product.getMarketingDescription().isEmpty()) ? "" : product.getMarketingDescription());
-            engDesc.add((product.getInvoiceDescription() == null || product.getInvoiceDescription().isEmpty()) ? "" : product.getInvoiceDescription());
-            /*logger.info("translateProductItemDescriptions:: " + product.getUpc() + " engDesc():: " + engDesc);*/
 
-            // Sending translation API call
-            //var translatedDesc = executeTranslation(holleyProperties.getProjectid(), holleyProperties.getLanguaje(), engDesc);
+            // Creating new ShopifyProduct with descriptions translated if any available
+            var shopifyProduct = initializeShopifyProductAndTranslate(product, holleyProperties.getProjectid());
+            // Adding upc - not null - no validation
+            shopifyProduct.setUpc(product.getUpc());
+            //Adding general attributes with validations
+            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
+                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
+            }
 
+
+            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
+                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
+            }
+            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
+                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
+            }
+            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
+                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
+            }
+            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
+                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
+            }
 
             // Creating Shopify Product with format for insertion after creating it
             /*var shopifyProd = new ShopifyProduct();
@@ -120,8 +122,7 @@ public class TranslateService {
     /**
      * Method to execute Google Translate API
      */
-    public static Map<String, String> executeTranslation(String projectId, String targetLanguage, List<String> descriptions)
-            throws IOException {
+    public static Map<String, String> executeTranslation(String projectId, String targetLanguage, HolleyProduct product) {
 
         Map<String, String> translatedDesc = new HashMap<>();
         try (TranslationServiceClient client = TranslationServiceClient.create()) {
@@ -132,25 +133,63 @@ public class TranslateService {
             translatedDesc.put("shortDesc", translationList.get(0).getTranslatedText());
             translatedDesc.put("LongDesc", translationList.get(1).getTranslatedText());
             translatedDesc.put("marketDesc", translationList.get(2).getTranslatedText());
-            translatedDesc.put("invoiceDesc", translationList.get(3).getTranslatedText());
         } catch (Exception e) {
             e.printStackTrace();
         }
         return translatedDesc;
     }
 
-    public String executeSingleTranslationTest(String projectId, List<String> descriptions) {
+    /**
+     * @param product
+     * @param projectId
+     * @return new empty product if no descriptions or error
+     * product with translated descriptions if successful
+     */
+    public ShopifyProduct initializeShopifyProductAndTranslate(HolleyProduct product, String projectId) {
+        List<String> contents = new ArrayList<>();
+        List<String> types = new ArrayList<>();
+        ShopifyProduct shopifyProduct = new ShopifyProduct();
 
-        String outValue = "";
+        //Collect only non-empty descriptions and add flag to match
+        if (product.getShortDescription() != null && !product.getShortDescription().isBlank()) {
+            contents.add(product.getShortDescription());
+            types.add("short");
+        }
+        if (product.getLongDescription() != null && !product.getLongDescription().isBlank()) {
+            contents.add(product.getLongDescription());
+            types.add("long");
+        }
+        if (product.getMarketingDescription() != null && !product.getMarketingDescription().isBlank()) {
+            contents.add(product.getMarketingDescription());
+            types.add("marketing");
+        }
+
+        // Build request only with valid contents
+        TranslateTextRequest request = TranslateTextRequest.newBuilder()
+                .setParent("projects/" + projectId + "/locations/global")
+                .setSourceLanguageCode("en")
+                .setTargetLanguageCode(holleyProperties.getProjectid())
+                .addAllContents(contents)
+                .build();
+
+        // Create client and execute translation
         try (TranslationServiceClient client = TranslationServiceClient.create()) {
-            LocationName parent = LocationName.of(projectId, "global");
-            TranslateTextResponse response = client.translateText(parent.toString(), holleyProperties.getLanguaje(), descriptions);
-            // Store the translations for descriptions in map to be processed
-            List<Translation> translationList = response.getTranslationsList();
-            outValue=translationList.get(0).getTranslatedText();
+            TranslateTextResponse response = client.translateText(request);
+            // Step 4: Map back translations to product fields
+            int i = 0;
+            for (Translation translation : response.getTranslationsList()) {
+                String translated = translation.getTranslatedText();
+                switch (types.get(i)) {
+                    case "short" -> shopifyProduct.setShortDescription(translated);
+                    case "long" -> shopifyProduct.setLongDescription(translated);
+                    case "marketing" -> shopifyProduct.setMarketingDescription(translated);
+                }
+                i++;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return outValue;
+        return shopifyProduct;
     }
+
 }
