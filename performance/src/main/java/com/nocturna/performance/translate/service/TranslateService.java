@@ -73,19 +73,6 @@ public class TranslateService {
             }
 
 
-            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
-                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
-            }
-            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
-                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
-            }
-            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
-                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
-            }
-            if(product.getInvoiceDescription()!=null && !product.getInvoiceDescription().isBlank()){
-                shopifyProduct.setInvoiceDescription(product.getInvoiceDescription());
-            }
-
             // Creating Shopify Product with format for insertion after creating it
             /*var shopifyProd = new ShopifyProduct();
             shopifyProd.setTitle(translatedDesc.get("shortDesc"));
@@ -122,7 +109,7 @@ public class TranslateService {
     /**
      * Method to execute Google Translate API
      */
-    public static Map<String, String> executeTranslation(String projectId, String targetLanguage, HolleyProduct product) {
+    /*public static Map<String, String> executeTranslation(String projectId, String targetLanguage, HolleyProduct product) {
 
         Map<String, String> translatedDesc = new HashMap<>();
         try (TranslationServiceClient client = TranslationServiceClient.create()) {
@@ -138,7 +125,7 @@ public class TranslateService {
         }
         return translatedDesc;
     }
-
+*/
     /**
      * @param product
      * @param projectId
@@ -168,7 +155,7 @@ public class TranslateService {
         TranslateTextRequest request = TranslateTextRequest.newBuilder()
                 .setParent("projects/" + projectId + "/locations/global")
                 .setSourceLanguageCode("en")
-                .setTargetLanguageCode(holleyProperties.getProjectid())
+                .setTargetLanguageCode(holleyProperties.getLanguaje())
                 .addAllContents(contents)
                 .build();
 

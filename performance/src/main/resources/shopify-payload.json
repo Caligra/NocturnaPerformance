@@ -1,0 +1,112 @@
+{
+  "product": {
+    "title": "650 CFM Double Pumper Carburetor",
+    "vendor": "Holley",
+    "product_type": "Fuel Systems",
+    "body_html": "<p>The Holley 650 CFM Double Pumper delivers maximum fuel flow for high-performance applications. Designed for racing and street/strip use with dual accelerator pumps for instant throttle response.</p>",
+    "status": "active",
+    "tags": [
+      "brand:Holley",
+      "category:Fuel Systems",
+      "subcategory:Carburetors",
+      "make:Ford",
+      "make:Chevrolet",
+      "year:1969",
+      "year:1970",
+      "year:1971",
+      "year:1972"
+    ],
+    "variants": [
+      {
+        "sku": "0-4779C",
+        "barcode": "090127425435",
+        "price": "899.99",
+        "weight": 4.5,
+        "weight_unit": "kg",
+        "inventory_management": "shopify",
+        "inventory_policy": "deny",
+        "requires_shipping": true,
+        "taxable": true
+      }
+    ],
+    "images": [
+      {
+        "src": "https://cdn.holley.com/products/0-4779C/main.jpg",
+        "position": 1,
+        "alt": "650 CFM Double Pumper Carburetor - Front View"
+      },
+      {
+        "src": "https://cdn.holley.com/products/0-4779C/side.jpg",
+        "position": 2,
+        "alt": "650 CFM Double Pumper Carburetor - Side View"
+      },
+      {
+        "src": "https://cdn.holley.com/products/0-4779C/detail.jpg",
+        "position": 3,
+        "alt": "650 CFM Double Pumper Carburetor - Detail"
+      }
+    ],
+    "metafields": [
+      {
+        "namespace": "custom",
+        "key": "vehicle_make",
+        "type": "list.single_line_text_field",
+        "value": "[\"Ford\", \"Chevrolet\"]"
+      },
+      {
+        "namespace": "custom",
+        "key": "vehicle_model",
+        "type": "list.single_line_text_field",
+        "value": "[\"Mustang\", \"Camaro\", \"Chevelle\", \"Falcon\"]"
+      },
+      {
+        "namespace": "custom",
+        "key": "year_range",
+        "type": "single_line_text_field",
+        "value": "1969-1972"
+      },
+      {
+        "namespace": "custom",
+        "key": "vehicle_years",
+        "type": "list.number_integer",
+        "value": "[1969, 1970, 1971, 1972]"
+      },
+      {
+        "namespace": "custom",
+        "key": "fitment_notes",
+        "type": "multi_line_text_field",
+        "value": "Compatible with small block and big block engines. Requires manual choke conversion for street use. Not emissions compliant in CA."
+      },
+      {
+        "namespace": "custom",
+        "key": "short_description",
+        "type": "single_line_text_field",
+        "value": "650 CFM double pumper carb for street/strip. Dual accelerator pumps, manual choke."
+      },
+      {
+        "namespace": "custom",
+        "key": "merch_length",
+        "type": "number_decimal",
+        "value": "22.5"
+      },
+      {
+        "namespace": "custom",
+        "key": "merch_width",
+        "type": "number_decimal",
+        "value": "18.0"
+      },
+      {
+        "namespace": "custom",
+        "key": "merch_height",
+        "type": "number_decimal",
+        "value": "15.0"
+      },
+      {
+        "namespace": "custom",
+        "key": "merch_weight",
+        "type": "number_decimal",
+        "value": "3.8"
+      }
+    ]
+  }
+}
