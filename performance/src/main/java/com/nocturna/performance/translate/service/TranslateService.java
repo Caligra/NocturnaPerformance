@@ -1,14 +1,13 @@
 package com.nocturna.performance.translate.service;
 
-import com.google.cloud.translate.v3.LocationName;
-import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.TranslateTextRequest;
+import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.nocturna.performance.catalog.dto.HolleyProduct;
 import com.nocturna.performance.catalog.dto.repository.HolleyProductRepository;
-import com.nocturna.performance.config.HolleyProperties;
-import com.nocturna.performance.config.SchedulerProperties;
+import com.nocturna.performance.config.properties.HolleyProperties;
+import com.nocturna.performance.config.properties.SchedulerProperties;
 import com.nocturna.performance.shopify.dto.ShopifyProduct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class TranslateService {
@@ -33,11 +30,12 @@ public class TranslateService {
         this.schedulerProperties = schedulerProperties;
     }
 
+    /**
+     * Pick data and send to AI https://libretranslate.com/
+     * return data, parse, store
+     * */
     public String performTranslateServiceOperation() {
-        /**
-         * Pick data and send to AI https://libretranslate.com/
-         * return data, parse, store
-         * */
+
         try {
             String[] brandCodes = schedulerProperties.getBrandcodes().split("\\+");
             for (String code : brandCodes) {

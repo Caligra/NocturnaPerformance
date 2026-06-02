@@ -1,7 +1,7 @@
 package com.nocturna.performance.catalog.job;
 
 import com.nocturna.performance.catalog.service.CatalogService;
-import com.nocturna.performance.config.SchedulerProperties;
+import com.nocturna.performance.config.properties.SchedulerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

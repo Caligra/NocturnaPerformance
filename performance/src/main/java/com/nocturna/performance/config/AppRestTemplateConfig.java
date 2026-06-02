@@ -7,7 +7,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableConfigurationProperties
-public class AppConfig {
+public class AppRestTemplateConfig {
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();

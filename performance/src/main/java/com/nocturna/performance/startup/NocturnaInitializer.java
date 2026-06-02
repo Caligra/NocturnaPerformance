@@ -1,9 +1,8 @@
 package com.nocturna.performance.startup;
 
-import com.nocturna.performance.brands.dto.HolleyBrand;
 import com.nocturna.performance.brands.dto.repository.HolleyBrandsRepository;
 import com.nocturna.performance.catalog.service.CatalogService;
-import com.nocturna.performance.config.HolleyProperties;
+import com.nocturna.performance.config.properties.HolleyProperties;
 import com.nocturna.performance.metafields.MetafieldDefinitionService;
 import com.nocturna.performance.shopify.service.ProductService;
 import com.nocturna.performance.translate.service.TranslateService;
@@ -13,8 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class NocturnaInitializer implements ApplicationRunner {
@@ -57,6 +54,9 @@ public class NocturnaInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+
+        // TODO service for new token ?
+
 
         if (enabled){
             logger.info("NocturnaInitializer:: Running metafield bootstrap.");

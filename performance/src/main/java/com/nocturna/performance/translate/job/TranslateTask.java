@@ -1,6 +1,6 @@
 package com.nocturna.performance.translate.job;
 
-import com.nocturna.performance.config.SchedulerProperties;
+import com.nocturna.performance.config.properties.SchedulerProperties;
 import com.nocturna.performance.translate.service.TranslateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

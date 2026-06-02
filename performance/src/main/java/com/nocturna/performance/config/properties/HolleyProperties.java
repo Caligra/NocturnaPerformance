@@ -1,4 +1,4 @@
-package com.nocturna.performance.config;
+package com.nocturna.performance.config.properties;
 
 import lombok.Getter;
 import lombok.Setter;
