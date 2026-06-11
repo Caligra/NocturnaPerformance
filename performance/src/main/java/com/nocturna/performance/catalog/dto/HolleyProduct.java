@@ -93,6 +93,9 @@ public class HolleyProduct {
     @Column(name = "last_updated", insertable = false, updatable = false)
     private LocalDateTime lastUpdated;
 
+    @Column(name = "data_hash", length = 64)
+    private String datahash;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HolleyImage> images;
 

@@ -8,6 +8,7 @@ import com.nocturna.performance.catalog.dto.repository.HolleyProductRepository;
 import com.nocturna.performance.config.properties.HolleyProperties;
 import com.nocturna.performance.config.properties.SchedulerProperties;
 import com.nocturna.performance.catalog.dto.wrappers.HolleyProducts;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -62,8 +64,8 @@ public class CatalogService {
         HolleyProducts holleyProducts = objectMapper.readValue(response.getBody(), HolleyProducts.class);
         //Extract object data from wrapper
         List<HolleyProduct> holleyProductList = holleyProducts.getHolleyProducts();
-        //Duplicate UPC check
-        List<HolleyProduct> insertList = duplicateUPCCheck(holleyProductList);
+        // Check for empty or duplicated UPC, generate data hash for upsert logic
+        List<HolleyProduct> insertList = checkUPCDataHash(holleyProductList);
 
         try {
             //Step 1: Store Holley data as is in DB
@@ -97,24 +99,42 @@ public class CatalogService {
     }
 
     //Duplicate check by looping through UPC values, unique values are added to a set to be streamed into a list
-    private List<HolleyProduct> duplicateUPCCheck(List<HolleyProduct> inputList) {
-        logger.info("CatalogService::duplicateUPCCheck()::inputList size " + inputList.size());
-        Set<String> original = new HashSet<>();
-        Set<HolleyProduct> unique = new HashSet<>();
-        for (HolleyProduct product : inputList) {
+    private List<HolleyProduct> checkUPCDataHash(List<HolleyProduct> holleyRawList) {
+        logger.info("CatalogService::checkUPCDataHash:: start :: holleyRawList.size() " + holleyRawList.size());
+        // Set to filter unique UPC - Arraylist to return filtered products
+        var uniqueSetUPC = new HashSet<String>();
+        var uniqueProdListRO = new ArrayList<HolleyProduct>();
+        for (HolleyProduct product : holleyRawList) {
+            // There are UPC null values in Holley - Check to skip null values
             String upc = product.getUpc();
             if (upc != null && !upc.isEmpty()) {
-                //add returns false if it wasn't added, log duplicate values, else add to unique
-                if (!original.add(upc)) {
-                    logger.info("CatalogService::duplicateUPCCheck()::Removed upc " + upc);
-                } else {
-                    unique.add(product);
+                // Generate dataHash to determine upsert
+                String shortDesc = product.getShortDescription() == null ? "" : product.getShortDescription();
+                String invoiceDesc = product.getInvoiceDescription() == null ? "" : product.getInvoiceDescription();
+                String newHash = DigestUtils.sha256Hex(product.getUpc() + "|" + shortDesc + "|" + invoiceDesc);
+                // Check if the product exists in DB
+                // If the product is a new one, grab data from holley, create datahash, add to RO
+                var existingProduct = holleyProductRepository.findById(upc).orElse(null);
+                if (existingProduct == null) {
+                    product.setDatahash(newHash);
+                    // Set .add() method returns false if the value wasn't added
+                    // Log duplicate values for debugging
+                    // Add unique upc values to return object
+                    if (!uniqueSetUPC.add(upc)) {
+                        logger.info("CatalogService::duplicateUPCCheck()::Removed upc " + upc);
+                    } else {
+                        uniqueProdListRO.add(product);
+                    }
+                } else if (!Objects.equals(existingProduct.getDatahash(), newHash)) {
+                    // Update only if changed
+                    product.setDatahash(newHash);
+                    uniqueProdListRO.add(product);
                 }
             }
         }
         //Stream unique to return list
-        logger.info("CatalogService::duplicateUPCCheck()::unique size " + unique.size());
-        return unique.stream().toList();
+        logger.info("CatalogService::checkUPCDataHash:: finish :: uniqueProdListRO.size()" + uniqueProdListRO.size());
+        return uniqueProdListRO;
     }
 
     private List<HolleyImage> generateImagesByProduct(HolleyProduct product) {
@@ -130,7 +150,7 @@ public class CatalogService {
                 /*if (isImageUrlValid(urlLink)) {
                     retObj.add(new HolleyImage(urlLink, product));
                 }*/
-                if(!urlLink.contains("pdf") && !urlLink.contains("youtube") ) {
+                if (!urlLink.contains("pdf") && !urlLink.contains("youtube")) {
                     retObj.add(new HolleyImage(urlLink, product));
                 }
             }

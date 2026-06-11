@@ -24,7 +24,7 @@ public class ShopifyRestAPIConfig {
         logger.info("Shopify access token loaded: [{}]",
                 accessToken != null ? accessToken + "..." : "NULL");
         return WebClient.builder()
-                .baseUrl("https://" + properties.getStoreDomain() + "/admin/api/" + properties.getApiVersion())
+                .baseUrl(getBaseUrl())
                 .defaultHeader("X-Shopify-Access-Token", accessToken)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
