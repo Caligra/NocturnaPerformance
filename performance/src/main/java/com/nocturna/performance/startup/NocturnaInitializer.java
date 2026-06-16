@@ -5,7 +5,7 @@ import com.nocturna.performance.brands.dto.repository.HolleyBrandsRepository;
 import com.nocturna.performance.catalog.service.CatalogService;
 import com.nocturna.performance.config.properties.HolleyProperties;
 import com.nocturna.performance.metafields.MetafieldDefinitionService;
-import com.nocturna.performance.shopify.service.ProductService;
+import com.nocturna.performance.shopify.products.service.ProductService;
 import com.nocturna.performance.translate.service.TranslateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,11 +61,12 @@ public class NocturnaInitializer implements ApplicationRunner {
             logger.info("NocturnaInitializer::run():: Executing initial metafield setup");
             metafieldService.bootstrapAll();
 
-            logger.info("NocturnaInitializer::run():: Fetching all authorized brands");
+            // todo collections setup on startup
+
+            logger.info("NocturnaInitializer::run():: Fetching all authorized brands from DB");
             List<HolleyBrand> approvedBrands = brandsRepository.findByApprovedTrue();
             logger.info("NocturnaInitializer::run():: # of authorized brands:: " + approvedBrands.size());
 
-            //todo productService.shopifyCreateProducts();
             logger.info("NocturnaInitializer::run():: Starting full catalogue download all brands");
             String exportBuildPlusTemplate = holleyProperties.getTemplate();
             for (HolleyBrand brand : approvedBrands) {
@@ -77,11 +78,12 @@ public class NocturnaInitializer implements ApplicationRunner {
                  * End goal - activate this code
                  * Temporary fix - run a single brand for testing purposes (1)
                  */
-                //logger.info("NocturnaInitializer:: Triggering translate service for brand:: " + brand.getPdmInternalCode() + " Name:: " + brand.getBrandName());
-                //translateService.translateProductItemDescriptions(brand.getPdmInternalCode());
-                //logger.info("NocturnaInitializer:: Finished translate service for brand:: " + brand.getPdmInternalCode() + " Name:: " + brand.getBrandName());
+//                logger.info("NocturnaInitializer:: Triggering translate service for brand:: " + brand.getPdmInternalCode() + " Name:: " + brand.getBrandName());
+                translateService.translateProductItemDescriptions(brand.getPdmInternalCode());
+//                logger.info("NocturnaInitializer:: Finished translate service for brand:: " + brand.getPdmInternalCode() + " Name:: " + brand.getBrandName());
             }
             logger.info("NocturnaInitializer::run():: Finished");
+            //todo productService.shopifyCreateProducts();
 
 
             /**
@@ -89,10 +91,14 @@ public class NocturnaInitializer implements ApplicationRunner {
              * To Be Deleted after test
              */
             /*try {
-                logger.info("NocturnaInitializer:: Triggering TEST translate service for brand:: BBVM Name:: BBVM");
-                catalogService.fetchCatalogDataByBrand(exportBuildPlusTemplate, "BBVM");
-                //translateService.translateProductItemDescriptions("BDDP");
-                logger.info("NocturnaInitializer:: Finished TEST translate service for brand:: BDDP Name:: ACCEL");
+                String test = "BBVL";
+                logger.info("NocturnaInitializer:: Triggering start TEST catalog service for brand::" + test);
+                catalogService.fetchCatalogDataByBrand(exportBuildPlusTemplate, test);
+                logger.info("NocturnaInitializer:: Triggering end TEST catalog service for brand::" + test);
+                logger.info("NocturnaInitializer:: Triggering start TEST translate service for brand::" + test);
+                translateService.translateProductItemDescriptions(test);
+                logger.info("NocturnaInitializer:: Triggering end TEST translate service for brand::" + test);
+
             }catch (Exception e){
                 e.printStackTrace();
             }*/

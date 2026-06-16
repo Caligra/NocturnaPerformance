@@ -1,10 +1,10 @@
-package com.nocturna.performance.shopify.service;
+package com.nocturna.performance.shopify.products.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nocturna.performance.apicredentials.service.TokenService;
 import com.nocturna.performance.config.properties.ShopifyProperties;
-import com.nocturna.performance.shopify.dto.ShopifyProduct;
-import com.nocturna.performance.shopify.dto.repository.ShopifyProductRepository;
+import com.nocturna.performance.shopify.products.dto.ShopifyProduct;
+import com.nocturna.performance.shopify.products.dto.repository.ShopifyProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;

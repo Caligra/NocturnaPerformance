@@ -52,29 +52,35 @@ public class CatalogService {
     }
 
     public void fetchCatalogDataByBrand(String template, String brandCode) throws IOException {
-
+        // todo check response if not auth flag false brand in DB
+        logger.info("CatalogService::START Brand:: " + brandCode );
         //Build our headers for the call
         HttpEntity<Void> requestEntity = new HttpEntity<>(getHeaders());
+        logger.info("CatalogService::getHeaders Brand:: " + brandCode );
+
         //Build and execute the GET call to download brand catalog
+        try{
         ResponseEntity<String> response = restTemplate.exchange(holleyProperties.getUrl(),
                 HttpMethod.GET, requestEntity, new ParameterizedTypeReference<>() {
                 }, template, brandCode);
+        logger.info("CatalogService:: ResponseEntity:: " + brandCode + " response.getBody():: " + response.getBody());
         //Wrapper to parse json into Holley DTO
         ObjectMapper objectMapper = new ObjectMapper();
+        logger.info("CatalogService:: Brand:: " + brandCode + " response.getBody():: " + response.getBody());
         HolleyProducts holleyProducts = objectMapper.readValue(response.getBody(), HolleyProducts.class);
         //Extract object data from wrapper
         List<HolleyProduct> holleyProductList = holleyProducts.getHolleyProducts();
         // Check for empty or duplicated UPC, generate data hash for upsert logic
         List<HolleyProduct> insertList = checkUPCDataHash(holleyProductList);
 
-        try {
+        //try {
             //Step 1: Store Holley data as is in DB
             if (!insertList.isEmpty()) {
                 holleyProductRepository.saveAll(insertList);
             }
-        } catch (DataIntegrityViolationException | HibernateException ex) {
-            ex.printStackTrace();
-        }
+//        } catch (DataIntegrityViolationException | HibernateException ex) {
+//            ex.printStackTrace();
+//        }
 
         /**
          * Processing URL Media before inserting
@@ -88,12 +94,13 @@ public class CatalogService {
             }
         }
         logger.info("CatalogService:: Brand:: " + brandCode + " allImgToInsert.getProducts().size():: " + allImgToInsert.size());
-        try {
+        //try {
             if (!allImgToInsert.isEmpty()) {
                 logger.info("CatalogService:: Brand:: " + brandCode + " holleyImagesRepository.saveAll:: !allImgToInsert.isEmpty()");
                 holleyImagesRepository.saveAll(allImgToInsert);
             }
-        } catch (DataIntegrityViolationException | HibernateException ex) {
+        } catch (Exception ex) {
+        //} catch (DataIntegrityViolationException | HibernateException ex ) {
             ex.printStackTrace();
         }
     }

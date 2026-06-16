@@ -1,7 +1,7 @@
-package com.nocturna.performance.shopify.job;
+package com.nocturna.performance.shopify.products.job;
 
 import com.nocturna.performance.config.properties.SchedulerProperties;
-import com.nocturna.performance.shopify.service.ProductService;
+import com.nocturna.performance.shopify.products.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

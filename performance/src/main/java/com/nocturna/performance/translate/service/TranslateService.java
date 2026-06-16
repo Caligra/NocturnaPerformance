@@ -8,7 +8,7 @@ import com.nocturna.performance.catalog.dto.HolleyProduct;
 import com.nocturna.performance.catalog.dto.repository.HolleyProductRepository;
 import com.nocturna.performance.config.properties.HolleyProperties;
 import com.nocturna.performance.config.properties.SchedulerProperties;
-import com.nocturna.performance.shopify.dto.ShopifyProduct;
+import com.nocturna.performance.shopify.products.dto.ShopifyProduct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

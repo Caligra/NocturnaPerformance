@@ -1,0 +1,4 @@
+package com.nocturna.performance.shopify.products.rest;
+
+public class ShopifyImage{
+}

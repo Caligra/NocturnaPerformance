@@ -51,7 +51,7 @@ public class HolleyProduct {
     @Column(name = "part_number")
     @JsonProperty("part_number")
     private String partNumber;
-    @Column(name = "application_make")
+    @Column(columnDefinition = "TEXT", name = "application_make")
     @JsonProperty("application_make")
     private String applicationMake;
     @Column(name = "shipping_height")
@@ -81,9 +81,6 @@ public class HolleyProduct {
     @Column(name = "application_year_from_to")
     @JsonProperty("application_year_from_to")
     private String applicationYearFromTo;
-    @Column(columnDefinition = "TEXT", name = "application_full_detail")
-    @JsonProperty("application_full_detail")
-    private String applicationFullDetail;
     @Column(name = "list_price")
     @JsonProperty("list_price")
     private String list_price;
@@ -125,7 +122,6 @@ public class HolleyProduct {
         this.merchWeight = merchWeight;
         this.applicationModel = applicationModel;
         this.applicationYearFromTo = applicationYearFromTo;
-        this.applicationFullDetail = applicationFullDetail;
         this.list_price = list_price;
         this.createdOn = createdOn;
         this.lastUpdated = lastUpdated;
@@ -135,7 +131,6 @@ public class HolleyProduct {
     public String toString() {
         return "HolleyProduct{" +
                 "upc='" + upc + '\'' +
-                ", applicationFullDetail='" + applicationFullDetail + '\'' +
                 '}';
     }
 }

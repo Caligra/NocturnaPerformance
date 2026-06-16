@@ -1,4 +1,4 @@
-package com.nocturna.performance.shopify.rest;
+package com.nocturna.performance.shopify.products.rest;
 
 import java.util.List;
 

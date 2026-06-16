@@ -1,0 +1,246 @@
+SmartCollectionService.java
+
+package com.nocturna.shopify.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
+
+@Service
+public class SmartCollectionService {
+
+    private static final Logger log = LoggerFactory.getLogger(SmartCollectionService.class);
+
+    @Value("${shopify.store.domain}")
+    private String storeDomain;
+
+    @Value("${shopify.access.token}")
+    private String accessToken;
+
+    @Value("${shopify.api.version:2025-04}")
+    private String apiVersion;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    // ─────────────────────────────────────────────
+    // GraphQL Mutations & Queries
+    // ─────────────────────────────────────────────
+
+    private static final String CREATE_SMART_COLLECTION_MUTATION = """
+        mutation collectionCreate($input: CollectionInput!) {
+          collectionCreate(input: $input) {
+            collection {
+              id
+              title
+              handle
+              ruleSet {
+                appliedDisjunctively
+                rules {
+                  column
+                  relation
+                  condition
+                }
+              }
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+        """;
+
+    private static final String COLLECTION_EXISTS_QUERY = """
+        query collectionExists($title: String!) {
+          collections(first: 1, query: $title) {
+            edges {
+              node {
+                id
+                title
+                handle
+              }
+            }
+          }
+        }
+        """;
+
+    // ─────────────────────────────────────────────
+    // Public API
+    // ─────────────────────────────────────────────
+
+    /**
+     * Idempotent entry point. Creates the smart collection only if it doesn't already exist.
+     *
+     * @param title    Collection title
+     * @param rules    List of rule maps with keys: column, relation, condition
+     * @param matchAny true = OR logic (any rule), false = AND logic (all rules)
+     * @return existing or newly created collection GID, or null on failure
+     */
+    public String createSmartCollectionIfAbsent(String title, List<Map<String, String>> rules, boolean matchAny) {
+        String existingId = collectionExists(title);
+        if (existingId != null) {
+            log.info("Smart collection already exists — skipping creation: title='{}', id={}", title, existingId);
+            return existingId;
+        }
+        return createSmartCollection(title, rules, matchAny);
+    }
+
+    // ─────────────────────────────────────────────
+    // Idempotency Check
+    // ─────────────────────────────────────────────
+
+    /**
+     * Checks whether a collection with the given title already exists in Shopify.
+     *
+     * @param title Collection title to look up
+     * @return the collection GID if found, null otherwise
+     */
+    public String collectionExists(String title) {
+        // Shopify collection query filter uses: title:'Exact Title'
+        String queryFilter = "title:'" + title + "'";
+        Map<String, Object> variables = Map.of("title", queryFilter);
+
+        try {
+            Map<String, Object> response = executeGraphQL(COLLECTION_EXISTS_QUERY, variables);
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+            Map<String, Object> collections = (Map<String, Object>) data.get("collections");
+            List<Map<String, Object>> edges = (List<Map<String, Object>>) collections.get("edges");
+
+            if (edges == null || edges.isEmpty()) {
+                return null;
+            }
+
+            // Exact title match guard — Shopify query is fuzzy, so double-check
+            for (Map<String, Object> edge : edges) {
+                Map<String, Object> node = (Map<String, Object>) edge.get("node");
+                String foundTitle = (String) node.get("title");
+                if (title.equalsIgnoreCase(foundTitle)) {
+                    return (String) node.get("id");
+                }
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            log.error("Failed to check collection existence for title='{}': {}", title, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // Collection Creation
+    // ─────────────────────────────────────────────
+
+    /**
+     * Creates a smart collection in Shopify.
+     *
+     * @param title    Collection title
+     * @param rules    List of rule maps — each must have: column, relation, condition
+     * @param matchAny true = OR (appliedDisjunctively), false = AND
+     * @return created collection GID, or null on failure
+     */
+    private String createSmartCollection(String title, List<Map<String, String>> rules, boolean matchAny) {
+        Map<String, Object> ruleSet = Map.of(
+            "appliedDisjunctively", matchAny,
+            "rules", rules
+        );
+
+        Map<String, Object> input = new HashMap<>();
+        input.put("title", title);
+        input.put("ruleSet", ruleSet);
+
+        Map<String, Object> variables = Map.of("input", input);
+
+        try {
+            Map<String, Object> response = executeGraphQL(CREATE_SMART_COLLECTION_MUTATION, variables);
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+            Map<String, Object> collectionCreate = (Map<String, Object>) data.get("collectionCreate");
+
+            // Surface userErrors
+            List<Map<String, String>> userErrors = (List<Map<String, String>>) collectionCreate.get("userErrors");
+            if (userErrors != null && !userErrors.isEmpty()) {
+                userErrors.forEach(e ->
+                    log.error("Shopify userError — field: {}, message: {}", e.get("field"), e.get("message"))
+                );
+                return null;
+            }
+
+            Map<String, Object> collection = (Map<String, Object>) collectionCreate.get("collection");
+            String collectionId = (String) collection.get("id");
+            log.info("Smart collection created: title='{}', id={}", title, collectionId);
+            return collectionId;
+
+        } catch (Exception e) {
+            log.error("Failed to create smart collection title='{}': {}", title, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // HTTP Execution
+    // ─────────────────────────────────────────────
+
+    private Map<String, Object> executeGraphQL(String query, Map<String, Object> variables) {
+        String url = String.format("https://%s/admin/api/%s/graphql.json", storeDomain, apiVersion);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Shopify-Access-Token", accessToken);
+
+        Map<String, Object> body = Map.of("query", query, "variables", variables);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
+        return response.getBody();
+    }
+}
+
+ProductSyncService.java
+
+package com.nocturna.shopify.service;
+
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class ProductSyncService {
+
+    private final SmartCollectionService smartCollectionService;
+
+    public ProductSyncService(SmartCollectionService smartCollectionService) {
+        this.smartCollectionService = smartCollectionService;
+    }
+
+    /**
+     * Called after a product is pushed to Shopify.
+     * Idempotent — will not create a duplicate collection if one already exists.
+     */
+    public void onProductPushed(String vehicleMake) {
+        String collectionTitle = "Make: " + vehicleMake;
+
+        List<Map<String, String>> rules = List.of(
+            Map.of(
+                "column",    "TAG",
+                "relation",  "EQUALS",
+                "condition", "make:" + vehicleMake.toLowerCase()
+            )
+        );
+
+        String collectionId = smartCollectionService.createSmartCollectionIfAbsent(
+            collectionTitle,
+            rules,
+            false // AND logic
+        );
+
+        if (collectionId != null) {
+            log.info("Collection ready for make='{}': {}", vehicleMake, collectionId);
+        }
+    }
+}
